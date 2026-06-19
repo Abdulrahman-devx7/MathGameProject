@@ -11,22 +11,31 @@ struct stQuestionStats
 {
     enOperationType opType; //Will be either easy, mid, or hard. Can't be mixed
     enQuestionsLevel level;
+
+    int firstNumber = 0;
+    int secondNumber = 0;
     int correctAnswer = 0;
+    int questionNumber = 0;
+
+    int userAnswer = 0;
+    bool isCorrect = false;
 };
 
 struct stGameStats
 {
     enOperationType OpType; //Can be any of the enumerators in enOperationType
     enQuestionsLevel level;
+
     int numQuestions = 0;
     int numCorrectAnswers = 0;
     int numWrongAnswers = 0;
+
+    bool didPlayerPass = false;
 };
 
 int ReadNumber(string Message)
 {
     //Validation will be added later
-
     int Number = 0;
     cout << Message << endl;
     cin >> Number;
@@ -45,8 +54,8 @@ enQuestionsLevel ReadQuestionsLevel()
     int choice;
     do
     {
-        cout << "Enter the questions level: [1] Easy, [2] Medium, [3] Hard, [4] Mix? ";
-        cin >> choice;
+        std::cout << "Enter the questions level: [1] Easy, [2] Medium, [3] Hard, [4] Mix? ";
+        std::cin >> choice;
         
     } while (choice > 4 || choice < 1);
 
@@ -58,30 +67,13 @@ enOperationType ReadOperationType()
     int choice;
     do
     {
-        cout << "Enter the operation type: [1] Addition, [2] Subtraction, [3] Multiplication, [4] Division, [5] Mix? ";
-        cin >> choice;
+        std::cout << "Enter the operation type: [1] Addition, [2] Subtraction, [3] Multiplication, [4] Division, [5] Mix? ";
+        std::cin >> choice;
 
     } while (choice > 5 || choice < 1);
 
     return enOperationType(choice);
 }
-
-bool IsLevelMixed(enQuestionsLevel level)
-{
-    if (level== Mixed1)
-        return true;
-
-    return false;
-}
-
-bool IsTypeMixed(enOperationType type)
-{
-    if (type == Mixed2)
-        return true;
-    
-    return false;
-}
-
 int GenerateQuestionNumber(enQuestionsLevel level)
 {
     switch (level)
@@ -97,147 +89,123 @@ int GenerateQuestionNumber(enQuestionsLevel level)
     }
 }
 
-enOperationType GenerateRandomOperation(short randomOp)
+void ChangeBackgroundColor(bool result)
 {
-    switch ((enOperationType)randomOp)
-    {
-    case Add:
-        return Add;
-
-    case Subtr:
-        return Subtr;
-
-    case Multi:
-        return Multi;
-
-    case Div:
-        return Div;
-    }
+    if (result == true) std::system("color 2F");
+    else std::system("color 4F");
 }
 
-void CalcCorrectAnswer(short firstNumber, short secondNumber, stQuestionStats &stats)
+enOperationType GenerateRandomOperation()
+{
+    int Operation = RandomNumber(1, 4);
+    return (enOperationType)Operation;
+}
+
+int CalcCorrectAnswer(stQuestionStats &stats)
 {
     switch (stats.opType)
     {
     case Add:
-        stats.correctAnswer = firstNumber + secondNumber;
-        break;
+        return stats.firstNumber + stats.secondNumber;
 
     case Subtr:
-        stats.correctAnswer = firstNumber - secondNumber;
-        break;
+        return stats.firstNumber - stats.secondNumber;
 
     case Multi:
-        stats.correctAnswer = firstNumber * secondNumber;
-        break;
+        return stats.firstNumber * stats.secondNumber;
 
     case Div:
         //The decimal part is ignored here, meaning if the result is 0.7 for example, the answer is 0.
-        stats.correctAnswer = firstNumber / secondNumber;
-        break;
+        return stats.firstNumber / stats.secondNumber;
     }
 }
 
-void FillQuestionOperation(stQuestionStats& questionStats, stGameStats& gameStats)
+stQuestionStats GenerateQuestion(enQuestionsLevel level, enOperationType type, int number)
 {
-    if (IsTypeMixed(gameStats.OpType))
-        questionStats.opType = GenerateRandomOperation(RandomNumber(1, 4));
-    else
-        questionStats.opType = gameStats.OpType;
+    stQuestionStats question;
+
+    if (level == Mixed1)
+        question.level = (enQuestionsLevel)RandomNumber(1, 3);
+    if (type == Mixed2)
+        question.opType = GenerateRandomOperation();
+
+    question.opType = type;
+    question.level = level;
+
+    question.firstNumber = GenerateQuestionNumber(level);
+    question.secondNumber = GenerateQuestionNumber(level);
+    question.correctAnswer = CalcCorrectAnswer(question);
+    question.questionNumber = number;
+    
+    return question;
 }
 
-void FillTwoNumbersForQuestion(stQuestionStats& questionStats, enQuestionsLevel level, short &firstNumber, short &secondNumber)
+void PrintQuestion(const stQuestionStats &stats, int numberQuestion)
 {
-    firstNumber = GenerateQuestionNumber(level);
-    secondNumber = GenerateQuestionNumber(level);
-}
+    std::cout << "Question: [" << stats.questionNumber << "/" << numberQuestion << "]\n\n";
 
-void HandleChoiceMix(stQuestionStats &questionStats, stGameStats &gameStats, short &firstNumber, short &secondNumber)
-{
-    enQuestionsLevel level;
-    if (IsLevelMixed(gameStats.level))
-    {
-        FillQuestionOperation(questionStats, gameStats);
-        level = (enQuestionsLevel)RandomNumber(1, 3);
-        FillTwoNumbersForQuestion(questionStats, level, firstNumber, secondNumber);
-    }
-    else
-    {
-        FillQuestionOperation(questionStats, gameStats);
-        level = gameStats.level;
-        FillTwoNumbersForQuestion(questionStats, level, firstNumber, secondNumber);
-    }
-}
-
-void ShowQuestion(const short firstNumber, const short secondNumber, stQuestionStats questionStats)
-{
-    switch (questionStats.opType)
+    switch (stats.opType)
     {
     case Add:
-        cout << firstNumber << "\n" << secondNumber << " +\n" << "----------\n";
+        std::cout << stats.firstNumber << "\n" << stats.secondNumber << " +\n" << "----------\n";
         break;
 
     case Subtr:
-        cout << firstNumber << "\n" << secondNumber << " -\n" << "----------\n";
+        std::cout << stats.firstNumber << "\n" << stats.secondNumber << " -\n" << "----------\n";
         break;
 
     case Multi:
-        cout << firstNumber << "\n" << secondNumber << " *\n" << "----------\n";
+        std::cout << stats.firstNumber << "\n" << stats.secondNumber << " *\n" << "----------\n";
         break;
 
     case Div:
-        cout << firstNumber << "\n" << secondNumber << " /\n" << "----------\n";
+        std::cout << stats.firstNumber << "\n" << stats.secondNumber << " /\n" << "----------\n";
         break;
     }
 }
 
-bool IsAnswerCorrect(const stQuestionStats& stats, int userAnswer)
+void IsAnswerCorrect(stQuestionStats& questionStats, stGameStats &gameStats)
 {
-    if (userAnswer == stats.correctAnswer)
+    if (questionStats.userAnswer==questionStats.correctAnswer)
     {
-        cout << "Your answer is right! :-)\n\n";
-        system("color 2F");
-        return true;
+        std::cout << "Your answer is right! :-)\n\n";
+        gameStats.numCorrectAnswers++;
+        questionStats.isCorrect = true;
     }
     else
     {
-        cout << "Your answer is wrong! :-( \nThe right answer is: " << stats.correctAnswer<<"\n\n";
-        system("color 4F");
-        return false;
+        std::cout << "Your answer is wrong! :-( \nThe right answer is: " << questionStats.correctAnswer << "\n\n";
+        gameStats.numWrongAnswers++;
+        //The isCorrect field is false by default in stQuestionStats
     }
+    ChangeBackgroundColor(questionStats.isCorrect);
 }
 
-bool DidUserPass(const stGameStats &stats)
+void ShowQuestionAndEvaluateAnswer(stGameStats &game)   
 {
-    return (stats.numCorrectAnswers >= stats.numWrongAnswers);
+    for (int Question = 1; Question <= game.numQuestions; Question++)
+    {
+        stQuestionStats question = GenerateQuestion(game.level, game.OpType, Question);
+        PrintQuestion(question, game.numQuestions);
+
+        question.userAnswer = ReadNumber("Please, enter your answer: ");
+        IsAnswerCorrect(question, game);
+    }
+    game.didPlayerPass = (game.numCorrectAnswers >= game.numWrongAnswers);
+}
+
+string ReturnPassOrFail(bool result)
+{
+    if (result == true) return "pass! :-)";
+    else return "fail! :-(";
 }
 
 void PrintResultHeader(bool result)
 {
-    //Linking the change of the background color (i.e. red or green) better be linked to determining if the user 
-    //passed or not. This should be done while also printing out a certain pass/fail header depending on the result as well
-    if (result == true)
-    {
-        std::cout << "---------------------------------\n";
-        std::cout << " Your final result is pass! :-)  \n";
-        std::cout << "---------------------------------\n";
-        std::system("color 2F");  
-
-    }
-    else
-    {
-        std::cout << "---------------------------------\n";
-        std::cout << " Your final result is fail! :-(  \n";
-        std::cout << "---------------------------------\n";
-        std::system("color 4F");  
-    }
-}
-
-void FillGameResults(stGameStats &stats ,int numQuestions, int numCorrectAnswers, int numWrongAnswers)
-{
-    stats.numQuestions = numQuestions;
-    stats.numCorrectAnswers = numCorrectAnswers;
-    stats.numWrongAnswers = numWrongAnswers;
+    std::cout << "---------------------------------\n";
+    std::cout << " Your final result is " << ReturnPassOrFail(result) << "\n";
+    std::cout << "---------------------------------\n";
+    ChangeBackgroundColor(result);
 }
 
 std::string ReturnQuestionLevel(enQuestionsLevel level)
@@ -266,9 +234,7 @@ std::string ReturnOperationType(enOperationType type)
 }
 
 void PrintGameResults(const stGameStats &Results)
-{
-    PrintResultHeader(DidUserPass(Results));
-    
+{    
     std::cout << "Number of Questions: " << Results.numQuestions << std::endl;
 
     std::cout << "Questions Level  : " << 
@@ -279,35 +245,21 @@ void PrintGameResults(const stGameStats &Results)
 
     std::cout << "Number of Right Answers: " << Results.numCorrectAnswers << std::endl;
     std::cout << "Number of Wrong Answers: " << Results.numWrongAnswers << std::endl;
+    ChangeBackgroundColor(Results.didPlayerPass);
 }
+
+
 
 stGameStats PlayGame(int NumQuestions)
 {
     stGameStats game;
-    stQuestionStats question;
-
-    int NumCorrectAnswers = 0, NumWrongAnswers = 0;
 
     game.level = ReadQuestionsLevel();
     game.OpType = ReadOperationType();
+    game.numQuestions = NumQuestions;
 
-    short FirstNumber = 0, SecondNumber = 0, Answer = 0;
+    ShowQuestionAndEvaluateAnswer(game);
 
-    for (int i = 1; i <= NumQuestions; i++)
-    {
-        HandleChoiceMix(question, game, FirstNumber, SecondNumber);
-
-        std::cout << "Question: [" << i << "/" << NumQuestions << "]\n\n";
-        ShowQuestion(FirstNumber, SecondNumber, question);
-        CalcCorrectAnswer(FirstNumber, SecondNumber, question);
-
-        Answer = ReadNumber("Enter your answer: ");
-
-        if (IsAnswerCorrect(question, Answer))
-            NumCorrectAnswers++;
-        else NumWrongAnswers++;
-    }
-    FillGameResults(game, NumQuestions, NumCorrectAnswers, NumWrongAnswers);
     return game;
 }
 
@@ -340,6 +292,5 @@ int main()
 
     StartGame();
 }
-
 
 
