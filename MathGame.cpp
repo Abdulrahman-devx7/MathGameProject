@@ -9,8 +9,8 @@ enum enOperationType { Add = 1, Subtr = 2, Multi = 3, Div = 4, Mixed2 = 5 };
 
 struct stQuestionStats
 {
-    enOperationType opType; //Will be either easy, mid, or hard. Can't be mixed
-    enQuestionsLevel level;
+    enOperationType OpType=Add; //Will be either easy, mid, or hard. Can't be mixed
+    enQuestionsLevel level=Easy;
 
     int firstNumber = 0;
     int secondNumber = 0;
@@ -23,8 +23,8 @@ struct stQuestionStats
 
 struct stGameStats
 {
-    enOperationType OpType; //Can be any of the enumerators in enOperationType
-    enQuestionsLevel level;
+    enOperationType OpType = Add; //Can be any of the enumerators in enOperationType
+    enQuestionsLevel level = Easy;
 
     int numQuestions = 0;
     int numCorrectAnswers = 0;
@@ -86,6 +86,8 @@ int GenerateQuestionNumber(enQuestionsLevel level)
 
     case Hard:
         return RandomNumber(50, 100);
+    default:
+        return RandomNumber(1, 10);
     }
 }
 
@@ -103,7 +105,7 @@ enOperationType GenerateRandomOperation()
 
 int CalcCorrectAnswer(stQuestionStats &stats)
 {
-    switch (stats.opType)
+    switch (stats.OpType)
     {
     case Add:
         return stats.firstNumber + stats.secondNumber;
@@ -125,11 +127,11 @@ stQuestionStats GenerateQuestion(enQuestionsLevel level, enOperationType type, i
     stQuestionStats question;
 
     if (level == Mixed1)
-        question.level = (enQuestionsLevel)RandomNumber(1, 3);
+        level = (enQuestionsLevel)RandomNumber(1, 3);
     if (type == Mixed2)
-        question.opType = GenerateRandomOperation();
+        type = GenerateRandomOperation();
 
-    question.opType = type;
+    question.OpType = type;
     question.level = level;
 
     question.firstNumber = GenerateQuestionNumber(level);
@@ -144,7 +146,7 @@ void PrintQuestion(const stQuestionStats &stats, int numberQuestion)
 {
     std::cout << "Question: [" << stats.questionNumber << "/" << numberQuestion << "]\n\n";
 
-    switch (stats.opType)
+    switch (stats.OpType)
     {
     case Add:
         std::cout << stats.firstNumber << "\n" << stats.secondNumber << " +\n" << "----------\n";
