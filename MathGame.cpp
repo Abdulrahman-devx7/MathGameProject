@@ -34,18 +34,18 @@ struct stGameStats
     bool didPlayerPass = false;
 };
 
-int ReadNumber(string Message, int from=INT_MIN, int to=INT_MAX)
+int ReadNumber(string inputMessage, int from = INT_MIN, int to = INT_MAX, string validationErrorMessage="Please, enter a valid input!")
 {
 
     int Number = 0;
-    cout << Message << endl;
+    cout << inputMessage << endl;
     cin >> Number;
 
     while (cin.fail() || Number < from || Number>to)
     {
         cin.clear();
         cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        cout << "Please, enter a valid number!\n";
+        cout << validationErrorMessage;
 
         cin >> Number;
     }
@@ -61,38 +61,19 @@ int RandomNumber(int From, int To)
 
 enQuestionsLevel ReadQuestionsLevel()
 {
-    int choice = 0;
-    std::cout << "Enter the questions level: [1] Easy, [2] Medium, [3] Hard, [4] Mix? ";
-    cin >> choice;
+    string InputMessage = "Enter the questions level: [1] Easy, [2] Medium, [3] Hard, [4] Mix? ";
+    string ValidationErrorMessage = "Please, provide a level using the numbers representing the question level: (1-4)\n";
 
-    while (cin.fail() || choice<1 || choice>4)
-    {
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        cout << "Please, enter a valid choice from the given choices for levels!\n";
 
-        cin >> choice;
-    }
-
-    return enQuestionsLevel(choice);
+    return (enQuestionsLevel)ReadNumber(InputMessage, 1, 4, ValidationErrorMessage);
 }
 
 enOperationType ReadOperationType()
 {
-    int choice=0;
-    std::cout << "Enter the operation type: [1] Addition, [2] Subtraction, [3] Multiplication, [4] Division, [5] Mix? ";
-    std::cin >> choice;
+    string InputMessage =  "Enter the operation type for the question: [1] Addition, [2] Subtraction, [3] Multiplication, [4] Division, [5] Mix? ";
+    string ValidationErrorMessage = "Please, provide an operation type using the numbers representing each operation : (1-5)\n";
 
-    while (cin.fail() || choice < 1 || choice>5)
-    {
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        cout << "Please, enter a valid choice from the given choices for operation types!\n";
-
-        cin >> choice;
-    }
-
-    return enOperationType(choice);
+    return (enOperationType)ReadNumber(InputMessage, 1, 5, ValidationErrorMessage);
 }
 
 int GenerateQuestionNumber(enQuestionsLevel level)
@@ -312,6 +293,7 @@ void StartGame()
 {
     do
     {
+
         ResetScreen();
         int NumQuestions = ReadNumber("Please, enter the number of questions you want to answer(1 - 200) ",1, 200);
         stGameStats GameResults = PlayGame(NumQuestions);
