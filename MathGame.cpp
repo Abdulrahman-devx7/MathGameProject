@@ -290,9 +290,26 @@ void ResetScreen()
     system("color 0f");
 }
 
-void StartGame()
+char DeterminePlayAgain()
 {
     char PlayAgain;
+    cout << endl << "Do you want to play again? Y/N\n";
+    cin >> PlayAgain;
+
+    while (cin.fail() || (toupper(PlayAgain) != 'N' && toupper(PlayAgain) != 'Y'))
+    {
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Please, enter a valid Choice (Y/N)!\n";
+
+        cin >> PlayAgain;
+    }
+
+    return toupper(PlayAgain);
+}
+
+void StartGame()
+{
     do
     {
         ResetScreen();
@@ -300,20 +317,7 @@ void StartGame()
         stGameStats GameResults = PlayGame(NumQuestions);
         PrintGameResults(GameResults);
 
-        cout << endl << "Do you want to play again? Y/N\n";
-        cin >> PlayAgain;
-
-        while (cin.fail() || (toupper(PlayAgain) != 'N' && toupper(PlayAgain) != 'Y'))
-        {
-            cin.clear();
-            cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            cout << "Please, enter a valid Choice (Y/N)!\n";
-
-            cin >> PlayAgain;
-        }
-
-
-    } while (PlayAgain=='Y' || PlayAgain=='y');
+    } while (DeterminePlayAgain()=='Y');
 
 }
 
