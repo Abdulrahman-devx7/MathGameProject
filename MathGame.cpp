@@ -1,16 +1,17 @@
 #include <iostream>
 #include <cmath>
-#include <windows.h>
 #include <cstdlib> 
 #include <ctime>  
+#include <climits> 
+
 using namespace std;
-enum enQuestionsLevel {Easy=1, Mid=2, Hard=3, Mixed1 =4};
-enum enOperationType { Add = 1, Subtr = 2, Multi = 3, Div = 4, Mixed2 = 5 };
+enum class enQuestionsLevel {Easy=1, Mid=2, Hard=3, Mixed =4};
+enum class  enOperationType { Add = 1, Subtr = 2, Multi = 3, Div = 4, Mixed = 5 };
 
 struct stQuestionStats
 {
-    enOperationType OpType=Add; //Will be either easy, mid, or hard. Can't be mixed
-    enQuestionsLevel level=Easy;
+    enOperationType OpType = enOperationType::Add; //Will be either easy, mid, or hard. Can't be mixed
+    enQuestionsLevel level = enQuestionsLevel::Easy;
 
     int firstNumber = 0;
     int secondNumber = 0;
@@ -23,8 +24,8 @@ struct stQuestionStats
 
 struct stGameStats
 {
-    enOperationType OpType = Add; //Can be any of the enumerators in enOperationType
-    enQuestionsLevel level = Easy;
+    enOperationType OpType = enOperationType::Add; //Can be any of the enumerators in enOperationType
+    enQuestionsLevel level = enQuestionsLevel::Easy;
 
     int numQuestions = 0;
     int numCorrectAnswers = 0;
@@ -33,12 +34,21 @@ struct stGameStats
     bool didPlayerPass = false;
 };
 
-int ReadNumber(string Message)
+int ReadNumber(string Message, int from=INT_MIN, int to=INT_MAX)
 {
-    //Validation will be added later
+
     int Number = 0;
     cout << Message << endl;
     cin >> Number;
+
+    while (cin.fail() || Number < from || Number>to)
+    {
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Please, enter a valid number!\n";
+
+        cin >> Number;
+    }
 
     return Number;
 }
@@ -51,40 +61,51 @@ int RandomNumber(int From, int To)
 
 enQuestionsLevel ReadQuestionsLevel()
 {
-    int choice;
-    do
+    int choice = 0;
+    std::cout << "Enter the questions level: [1] Easy, [2] Medium, [3] Hard, [4] Mix? ";
+    cin >> choice;
+
+    while (cin.fail() || choice<1 || choice>4)
     {
-        std::cout << "Enter the questions level: [1] Easy, [2] Medium, [3] Hard, [4] Mix? ";
-        std::cin >> choice;
-        
-    } while (choice > 4 || choice < 1);
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Please, enter a valid choice from the given choices for levels!\n";
+
+        cin >> choice;
+    }
 
     return enQuestionsLevel(choice);
 }
 
 enOperationType ReadOperationType()
 {
-    int choice;
-    do
-    {
-        std::cout << "Enter the operation type: [1] Addition, [2] Subtraction, [3] Multiplication, [4] Division, [5] Mix? ";
-        std::cin >> choice;
+    int choice=0;
+    std::cout << "Enter the operation type: [1] Addition, [2] Subtraction, [3] Multiplication, [4] Division, [5] Mix? ";
+    std::cin >> choice;
 
-    } while (choice > 5 || choice < 1);
+    while (cin.fail() || choice < 1 || choice>5)
+    {
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Please, enter a valid choice from the given choices for operation types!\n";
+
+        cin >> choice;
+    }
 
     return enOperationType(choice);
 }
+
 int GenerateQuestionNumber(enQuestionsLevel level)
 {
     switch (level)
     {
-    case Easy:
+    case enQuestionsLevel::Easy:
         return RandomNumber(1, 10);
 
-    case Mid:
+    case enQuestionsLevel::Mid:
         return RandomNumber(10, 50);
 
-    case Hard:
+    case enQuestionsLevel::Hard:
         return RandomNumber(50, 100);
     default:
         return RandomNumber(1, 10);
@@ -107,16 +128,16 @@ int CalcCorrectAnswer(stQuestionStats &stats)
 {
     switch (stats.OpType)
     {
-    case Add:
+    case enOperationType::Add:
         return stats.firstNumber + stats.secondNumber;
 
-    case Subtr:
+    case enOperationType::Subtr:
         return stats.firstNumber - stats.secondNumber;
 
-    case Multi:
+    case enOperationType::Multi:
         return stats.firstNumber * stats.secondNumber;
 
-    case Div:
+    case enOperationType::Div:
         //The decimal part is ignored here, meaning if the result is 0.7 for example, the answer is 0.
         return stats.firstNumber / stats.secondNumber;
     }
@@ -126,9 +147,9 @@ stQuestionStats GenerateQuestion(enQuestionsLevel level, enOperationType type, i
 {
     stQuestionStats question;
 
-    if (level == Mixed1)
+    if (level == enQuestionsLevel::Mixed)
         level = (enQuestionsLevel)RandomNumber(1, 3);
-    if (type == Mixed2)
+    if (type == enOperationType::Mixed)
         type = GenerateRandomOperation();
 
     question.OpType = type;
@@ -148,19 +169,19 @@ void PrintQuestion(const stQuestionStats &stats, int numberQuestion)
 
     switch (stats.OpType)
     {
-    case Add:
+    case enOperationType::Add:
         std::cout << stats.firstNumber << "\n" << stats.secondNumber << " +\n" << "----------\n";
         break;
 
-    case Subtr:
+    case enOperationType::Subtr:
         std::cout << stats.firstNumber << "\n" << stats.secondNumber << " -\n" << "----------\n";
         break;
 
-    case Multi:
+    case enOperationType::Multi:
         std::cout << stats.firstNumber << "\n" << stats.secondNumber << " *\n" << "----------\n";
         break;
 
-    case Div:
+    case enOperationType::Div:
         std::cout << stats.firstNumber << "\n" << stats.secondNumber << " /\n" << "----------\n";
         break;
     }
@@ -217,7 +238,7 @@ std::string ReturnQuestionLevel(enQuestionsLevel level)
     case enQuestionsLevel::Easy:   return "Easy";
     case enQuestionsLevel::Mid:    return "Mid";
     case enQuestionsLevel::Hard:   return "Hard";
-    case enQuestionsLevel::Mixed1: return "Mixed";
+    case enQuestionsLevel::Mixed:  return "Mixed";
     default:                       return "Unknown";
     }
 }
@@ -230,7 +251,7 @@ std::string ReturnOperationType(enOperationType type)
     case enOperationType::Subtr:  return "Subtr";
     case enOperationType::Multi:  return "Multi";
     case enOperationType::Div:    return "Div";
-    case enOperationType::Mixed2: return "Mixed";
+    case enOperationType::Mixed:  return "Mixed";
     default:                      return "Unknown";
     }
 }
@@ -249,8 +270,6 @@ void PrintGameResults(const stGameStats &Results)
     std::cout << "Number of Wrong Answers: " << Results.numWrongAnswers << std::endl;
     ChangeBackgroundColor(Results.didPlayerPass);
 }
-
-
 
 stGameStats PlayGame(int NumQuestions)
 {
@@ -277,12 +296,22 @@ void StartGame()
     do
     {
         ResetScreen();
-        int NumQuestions = ReadNumber("Please, enter the number of questions you want to answer: ");
+        int NumQuestions = ReadNumber("Please, enter the number of questions you want to answer(1 - 200) ",1, 200);
         stGameStats GameResults = PlayGame(NumQuestions);
         PrintGameResults(GameResults);
 
         cout << endl << "Do you want to play again? Y/N\n";
         cin >> PlayAgain;
+
+        while (cin.fail() || (toupper(PlayAgain) != 'N' && toupper(PlayAgain) != 'Y'))
+        {
+            cin.clear();
+            cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            cout << "Please, enter a valid Choice (Y/N)!\n";
+
+            cin >> PlayAgain;
+        }
+
 
     } while (PlayAgain=='Y' || PlayAgain=='y');
 
@@ -294,5 +323,3 @@ int main()
 
     StartGame();
 }
-
-
