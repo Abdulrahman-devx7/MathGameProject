@@ -34,18 +34,27 @@ struct stGameStats
     bool didPlayerPass = false;
 };
 
-int ReadNumber(string inputMessage, int from = INT_MIN, int to = INT_MAX, string validationErrorMessage="Please, enter a valid input!")
+struct stInputData
 {
+    string inputMessage;
+    int from = INT_MIN; 
+    int to = INT_MAX;
+    string validationErrorMessage = "Please, enter a valid input!\n";
+};
 
+struct stSessionStats
+
+int ReadNumber(const stInputData& input)
+{
     int Number = 0;
-    cout << inputMessage << endl;
+    cout << input.inputMessage << endl;
     cin >> Number;
 
-    while (cin.fail() || Number < from || Number>to)
+    while (cin.fail() || Number < input.from || Number > input.to)
     {
         cin.clear();
         cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        cout << validationErrorMessage;
+        cout << input.validationErrorMessage;
 
         cin >> Number;
     }
@@ -61,19 +70,25 @@ int RandomNumber(int From, int To)
 
 enQuestionsLevel ReadQuestionsLevel()
 {
-    string InputMessage = "Enter the questions level: [1] Easy, [2] Medium, [3] Hard, [4] Mix? ";
-    string ValidationErrorMessage = "Please, provide a level using the numbers representing the question level: (1-4)\n";
+    stInputData inputData;
+    inputData.inputMessage = "Enter the questions level: [1] Easy, [2] Medium, [3] Hard, [4] Mix? ";
+    inputData.from = 1;
+    inputData.to = 4;
+    inputData.validationErrorMessage = "Please, provide a level using the numbers representing the question level: (1-4)\n";
 
 
-    return (enQuestionsLevel)ReadNumber(InputMessage, 1, 4, ValidationErrorMessage);
+    return (enQuestionsLevel)ReadNumber(inputData);
 }
 
 enOperationType ReadOperationType()
 {
-    string InputMessage =  "Enter the operation type for the question: [1] Addition, [2] Subtraction, [3] Multiplication, [4] Division, [5] Mix? ";
-    string ValidationErrorMessage = "Please, provide an operation type using the numbers representing each operation : (1-5)\n";
+    stInputData inputData;
+    inputData.inputMessage = "Enter the operation type for the question: [1] Addition, [2] Subtraction, [3] Multiplication, [4] Division, [5] Mix? ";
+    inputData.from = 1;
+    inputData.to = 5;
+    inputData.validationErrorMessage = "Please, provide an operation type using the numbers representing each operation : (1-5)\n";
 
-    return (enOperationType)ReadNumber(InputMessage, 1, 5, ValidationErrorMessage);
+    return (enOperationType)ReadNumber(inputData);
 }
 
 int GenerateQuestionNumber(enQuestionsLevel level)
@@ -192,7 +207,12 @@ void ShowQuestionAndEvaluateAnswer(stGameStats &game)
         stQuestionStats question = GenerateQuestion(game.level, game.OpType, Question);
         PrintQuestion(question, game.numQuestions);
 
-        question.userAnswer = ReadNumber("Please, enter your answer: ");
+        stInputData inputData;
+        inputData.inputMessage = "Please, enter your answer: ";
+        inputData.from = INT_MIN;
+        inputData.to = INT_MAX;
+
+        question.userAnswer = ReadNumber(inputData);
         IsAnswerCorrect(question, game);
     }
     game.didPlayerPass = (game.numCorrectAnswers >= game.numWrongAnswers);
@@ -289,18 +309,29 @@ char DeterminePlayAgain()
     return toupper(PlayAgain);
 }
 
+int ReadNumberOfQuestions()
+{
+    stInputData inputData;
+    inputData.inputMessage = "Please, enter the number of questions you want to answer(1 - 200): ";
+    inputData.from = 1;
+    inputData.to = 200;
+    inputData.validationErrorMessage = "Please, enter a valid number between 1 and 200!\n";
+
+    return ReadNumber(inputData);
+}
+
 void StartGame()
 {
     do
     {
 
         ResetScreen();
-        int NumQuestions = ReadNumber("Please, enter the number of questions you want to answer(1 - 200) ",1, 200);
+
+        int NumQuestions = ReadNumberOfQuestions();
         stGameStats GameResults = PlayGame(NumQuestions);
         PrintGameResults(GameResults);
 
     } while (DeterminePlayAgain()=='Y');
-
 }
 
 int main()
