@@ -3,6 +3,7 @@
 #include <cstdlib> 
 #include <ctime>  
 #include <climits> 
+#include <string>
 
 using namespace std;
 enum class enQuestionsLevel {Easy=1, Mid=2, Hard=3, Mixed =4};
@@ -42,22 +43,21 @@ struct stInputData
     string validationErrorMessage = "Please, enter a valid input!\n";
 };
 
-struct stSessionStats
-
 int ReadNumber(const stInputData& input)
 {
     int Number = 0;
     cout << input.inputMessage << endl;
     cin >> Number;
 
-    while (cin.fail() || Number < input.from || Number > input.to)
-    {
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        cout << input.validationErrorMessage;
+   while (cin.fail() || Number < input.from || Number > input.to
+         || (std::cin.peek() != '\n' && std::cin.peek() != EOF))
+   {
+       cin.clear();
+       cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+       cout << input.validationErrorMessage;
 
-        cin >> Number;
-    }
+       cin >> Number;
+   }
 
     return Number;
 }
@@ -75,7 +75,6 @@ enQuestionsLevel ReadQuestionsLevel()
     inputData.from = 1;
     inputData.to = 4;
     inputData.validationErrorMessage = "Please, provide a level using the numbers representing the question level: (1-4)\n";
-
 
     return (enQuestionsLevel)ReadNumber(inputData);
 }
