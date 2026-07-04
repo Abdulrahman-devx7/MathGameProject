@@ -49,6 +49,7 @@ int ReadNumber(const stInputData& input)
     cout << input.inputMessage << endl;
     cin >> Number;
 
+
    while (cin.fail() || Number < input.from || Number > input.to
          || (std::cin.peek() != '\n' && std::cin.peek() != EOF))
    {
@@ -296,7 +297,8 @@ char DeterminePlayAgain()
     cout << endl << "Do you want to play again? Y/N\n";
     cin >> PlayAgain;
 
-    while (cin.fail() || (toupper(PlayAgain) != 'N' && toupper(PlayAgain) != 'Y'))
+    while (cin.fail() || (toupper(PlayAgain) != 'N' && toupper(PlayAgain) != 'Y')
+          || (std::cin.peek() != '\n' && std::cin.peek() != EOF))
     {
         cin.clear();
         cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
