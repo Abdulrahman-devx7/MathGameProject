@@ -99,7 +99,7 @@ short GenerateQuestionAddSubtract(enQuestionsLevel level)
     switch (level)
     {
     case enQuestionsLevel::Easy:
-        return RandomNumber(80, 100);
+        return RandomNumber(60, 120);
 
     case enQuestionsLevel::Mid:
         return RandomNumber(250, 500);
@@ -107,7 +107,7 @@ short GenerateQuestionAddSubtract(enQuestionsLevel level)
     case enQuestionsLevel::Hard:
         return RandomNumber(850, 1500);
     default:
-        return RandomNumber(80, 100);
+        return RandomNumber(60, 120);
     }
 }
 
@@ -116,15 +116,15 @@ short GenerateQuestionMultiDivision(enQuestionsLevel level)
     switch (level)
     {
     case enQuestionsLevel::Easy:
-        return RandomNumber(10, 22);
+        return RandomNumber(10, 20);
 
     case enQuestionsLevel::Mid:
-        return RandomNumber(30, 50);
+        return RandomNumber(20, 45);
 
     case enQuestionsLevel::Hard:
-        return RandomNumber(60, 95);
+        return RandomNumber(40, 60);
     default:
-        return RandomNumber(10, 22);
+        return RandomNumber(10, 20);
     }
 }
 
