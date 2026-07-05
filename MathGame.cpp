@@ -94,21 +94,48 @@ enOperationType ReadOperationType()
     return (enOperationType)ReadNumber(inputData);
 }
 
-int GenerateQuestionNumber(enQuestionsLevel level)
+short GenerateQuestionAddSubtract(enQuestionsLevel level)
 {
     switch (level)
     {
     case enQuestionsLevel::Easy:
-        return RandomNumber(1, 10);
+        return RandomNumber(80, 100);
 
     case enQuestionsLevel::Mid:
-        return RandomNumber(10, 50);
+        return RandomNumber(250, 500);
 
     case enQuestionsLevel::Hard:
-        return RandomNumber(50, 100);
+        return RandomNumber(850, 1500);
     default:
-        return RandomNumber(1, 10);
+        return RandomNumber(80, 100);
     }
+}
+
+short GenerateQuestionMultiDivision(enQuestionsLevel level)
+{
+    switch (level)
+    {
+    case enQuestionsLevel::Easy:
+        return RandomNumber(10, 22);
+
+    case enQuestionsLevel::Mid:
+        return RandomNumber(30, 50);
+
+    case enQuestionsLevel::Hard:
+        return RandomNumber(60, 95);
+    default:
+        return RandomNumber(10, 22);
+    }
+}
+
+short GenerateQuestionNumber(stQuestionStats &question)
+{
+    if (question.OpType == enOperationType::Add ||
+                    question.OpType == enOperationType::Subtr)
+    {
+        return GenerateQuestionAddSubtract(question.level);
+    }
+    else return GenerateQuestionMultiDivision(question.level);
 }
 
 void ChangeBackgroundColor(bool result)
@@ -154,8 +181,8 @@ stQuestionStats GenerateQuestion(enQuestionsLevel level, enOperationType type, i
     question.OpType = type;
     question.level = level;
 
-    question.firstNumber = GenerateQuestionNumber(level);
-    question.secondNumber = GenerateQuestionNumber(level);
+    question.firstNumber = GenerateQuestionNumber(question);
+    question.secondNumber = GenerateQuestionNumber(question);
     question.correctAnswer = CalcCorrectAnswer(question);
     question.questionNumber = number;
     
@@ -327,6 +354,13 @@ void DefaultBackGroundColor()
      system("color 0f");
 }
 
+void PrintQuestionReviewCard(const stQuestionStats& question, short totalQuestions)
+{
+    PrintQuestion(question, totalQuestions);
+    cout << "Your answer: " << question.userAnswer << endl;
+    cout << "The correct answer: " << question.correctAnswer << endl;
+}
+
 void ReviewAnswers(stGameStats& game)
 {
     stInputData inputData;
@@ -336,12 +370,10 @@ void ReviewAnswers(stGameStats& game)
         + to_string(inputData.from) + '-' + to_string(inputData.to) + ')';
 
     while (DetermineAgain("Do you want to review your answer to a question (Y/N)?\n") == 'Y')
-    {
+    {   
         DefaultBackGroundColor();
         short QuestionNum = ReadNumber(inputData);
-        PrintQuestion(game.questions[QuestionNum - 1], game.numQuestions);
-        cout << "Your answer: " << game.questions[QuestionNum - 1].userAnswer << endl;
-        cout << "The correct answer: " << game.questions[QuestionNum - 1].correctAnswer << endl;
+        PrintQuestionReviewCard(game.questions[QuestionNum - 1], game.numQuestions);
     }
 }
 
