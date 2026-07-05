@@ -14,7 +14,8 @@ A modular and console-based math quiz game that can generate simple math questio
 - Visual real-time feedback that changes the background the console color depending on the user's interactions.
 - An active game grading system that concludes the user's performance at the end of the game.
 - A defensive validation system that prevents crashes caused by unexpected user inputs.
-- A limit of 200 questions per session
+- A limit of 200 questions per session.
+- Ability to review answers after ending the game session.
 
 
 ## ⚙️ Architecture and engineering choices ##
