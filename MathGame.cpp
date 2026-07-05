@@ -4,6 +4,7 @@
 #include <ctime>  
 #include <climits> 
 #include <string>
+#include <vector>
 
 using namespace std;
 enum class enQuestionsLevel {Easy=1, Mid=2, Hard=3, Mixed =4};
@@ -27,10 +28,12 @@ struct stGameStats
 {
     enOperationType OpType = enOperationType::Add; //Can be any of the enumerators in enOperationType
     enQuestionsLevel level = enQuestionsLevel::Easy;
+    vector <stQuestionStats> questions;
 
     int numQuestions = 0;
     int numCorrectAnswers = 0;
     int numWrongAnswers = 0;
+
 
     bool didPlayerPass = false;
 };
@@ -161,7 +164,7 @@ stQuestionStats GenerateQuestion(enQuestionsLevel level, enOperationType type, i
 
 void PrintQuestion(const stQuestionStats &stats, int numberQuestion)
 {
-    std::cout << "Question: [" << stats.questionNumber << "/" << numberQuestion << "]\n\n";
+    std::cout << "Question: [" << stats.questionNumber+1 << "/" << numberQuestion << "]\n\n";
 
     switch (stats.OpType)
     {
@@ -200,20 +203,27 @@ void IsAnswerCorrect(stQuestionStats& questionStats, stGameStats &gameStats)
     ChangeBackgroundColor(questionStats.isCorrect);
 }
 
+void PrepareQuestions(stGameStats &game)
+{
+    for (short Question = 0; Question < game.numQuestions; Question++)
+    {
+        stQuestionStats question = GenerateQuestion(game.level, game.OpType, Question);
+        game.questions.push_back(question);
+    }
+}
+
 void ShowQuestionAndEvaluateAnswer(stGameStats &game)   
 {
     for (int Question = 1; Question <= game.numQuestions; Question++)
     {
-        stQuestionStats question = GenerateQuestion(game.level, game.OpType, Question);
-        PrintQuestion(question, game.numQuestions);
+        PrintQuestion(game.questions[Question-1], game.numQuestions);
 
         stInputData inputData;
         inputData.inputMessage = "Please, enter your answer: ";
-        inputData.from = INT_MIN;
-        inputData.to = INT_MAX;
 
-        question.userAnswer = ReadNumber(inputData);
-        IsAnswerCorrect(question, game);
+        game.questions[Question-1].userAnswer = ReadNumber(inputData);
+
+        IsAnswerCorrect(game.questions[Question-1], game);
     }
     game.didPlayerPass = (game.numCorrectAnswers >= game.numWrongAnswers);
 }
@@ -280,6 +290,8 @@ stGameStats PlayGame(int NumQuestions)
     game.OpType = ReadOperationType();
     game.numQuestions = NumQuestions;
 
+    PrepareQuestions(game);
+
     ShowQuestionAndEvaluateAnswer(game);
 
     return game;
@@ -291,10 +303,10 @@ void ResetScreen()
     system("color 0f");
 }
 
-char DeterminePlayAgain()
+char DetermineAgain(string message)
 {
     char PlayAgain;
-    cout << endl << "Do you want to play again? Y/N\n";
+    cout << endl << message;
     cin >> PlayAgain;
 
     while (cin.fail() || (toupper(PlayAgain) != 'N' && toupper(PlayAgain) != 'Y')
@@ -308,6 +320,29 @@ char DeterminePlayAgain()
     }
 
     return toupper(PlayAgain);
+}
+
+void DefaultBackGroundColor()
+{
+     system("color 0f");
+}
+
+void ReviewAnswers(stGameStats& game)
+{
+    stInputData inputData;
+    inputData.from = 1;
+    inputData.to = game.numQuestions;
+    inputData.inputMessage = "Please, enter the number of the question you'd like to review ("
+        + to_string(inputData.from) + '-' + to_string(inputData.to) + ')';
+
+    while (DetermineAgain("Do you want to review your answer to a question (Y/N)?\n") == 'Y')
+    {
+        DefaultBackGroundColor();
+        short QuestionNum = ReadNumber(inputData);
+        PrintQuestion(game.questions[QuestionNum - 1], game.numQuestions);
+        cout << "Your answer: " << game.questions[QuestionNum - 1].userAnswer << endl;
+        cout << "The correct answer: " << game.questions[QuestionNum - 1].correctAnswer << endl;
+    }
 }
 
 int ReadNumberOfQuestions()
@@ -325,14 +360,16 @@ void StartGame()
 {
     do
     {
-
         ResetScreen();
 
-        int NumQuestions = ReadNumberOfQuestions();
-        stGameStats GameResults = PlayGame(NumQuestions);
-        PrintGameResults(GameResults);
+        stGameStats GameResults;
+        GameResults.numQuestions = ReadNumberOfQuestions();
 
-    } while (DeterminePlayAgain()=='Y');
+        GameResults = PlayGame(GameResults.numQuestions);
+        PrintGameResults(GameResults);
+        ReviewAnswers(GameResults);
+
+    } while (DetermineAgain("Do You want to play again (Y/N)?\n") == 'Y');
 }
 
 int main()
