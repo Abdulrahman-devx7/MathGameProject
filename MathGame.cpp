@@ -163,7 +163,7 @@ enOperationType ReadOperationType()
 short ReturnScore(bool correct, enQuestionsLevel level)
 {
     if (!correct)
-        return false;
+        return 0;
     else
     {
         switch (level) {
@@ -427,6 +427,11 @@ void ShowQuestionAndEvaluateAnswer(stCustomModeStats &game)
     game.didPlayerPass = (game.numCorrectAnswers >= game.numWrongAnswers);
 }
 
+void ShowQuestionScore(short score)
+{
+    cout << "You got " << score << " points!\n";
+}
+
 void ShowQuestionAndEvaluateScore(stDedicatedModeStats& game)
 {
     short numQuestions = game.numQuestions;
@@ -442,6 +447,8 @@ void ShowQuestionAndEvaluateScore(stDedicatedModeStats& game)
 
         IsAnswerCorrect(game.questions[Question - 1], game);
         game.playerScore += ReturnScore(game.questions[Question - 1].isCorrect, game.level);
+
+        ShowQuestionScore(ReturnScore(game.questions[Question - 1].isCorrect, game.level));
     }
 }
 
