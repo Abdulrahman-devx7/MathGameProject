@@ -10,6 +10,11 @@ using namespace std;
 enum class enQuestionsLevel {Easy=1, Mid=2, Hard=3, Mixed =4};
 enum class  enOperationType { Add = 1, Subtr = 2, Multi = 3, Div = 4, Mixed = 5 };
 
+
+const string TEXT_RED = "\033[31m";
+const string TEXT_YELLOW = "\033[33m";
+const string TEXT_RESET = "\033[0m"; 
+
 struct stQuestionStats
 {
     enOperationType OpType = enOperationType::Add; //Will be either easy, mid, or hard. Can't be mixed
@@ -24,7 +29,7 @@ struct stQuestionStats
     bool isCorrect = false;
 };
 
-struct stGameStats
+struct stCustomModeStats
 {
     enOperationType OpType = enOperationType::Add; //Can be any of the enumerators in enOperationType
     enQuestionsLevel level = enQuestionsLevel::Easy;
@@ -34,24 +39,42 @@ struct stGameStats
     int numCorrectAnswers = 0;
     int numWrongAnswers = 0;
 
-
     bool didPlayerPass = false;
+};
+
+struct stDedicatedModeStats
+{
+    //The numbers of questions, easy, medium, and hard are defaulted to the values of easy mode 
+    short numEasyQuestions = 9;
+    short numMediumQuestions = 4;
+    short numHardQuestions = 2;
+    int numCorrectAnswers = 0;
+    int numWrongAnswers = 0;
+    enQuestionsLevel level = enQuestionsLevel::Easy;
+
+    //I need to investigate whether using a vector constructor here would consume memory or not, even if I didn't initialize a struct
+    vector <stQuestionStats> questions;
+    short playerScore = 0;
 };
 
 struct stInputData
 {
     string inputMessage;
-    int from = INT_MIN; 
+    int from = INT_MIN;
     int to = INT_MAX;
     string validationErrorMessage = "Please, enter a valid input!\n";
 };
+
+void DefaultBackGroundColor()
+{
+    system("color 0f");
+}
 
 int ReadNumber(const stInputData& input)
 {
     int Number = 0;
     cout << input.inputMessage << endl;
     cin >> Number;
-
 
    while (cin.fail() || Number < input.from || Number > input.to
          || (std::cin.peek() != '\n' && std::cin.peek() != EOF))
@@ -70,6 +93,51 @@ int RandomNumber(int From, int To)
 {
     int randNum = rand() % (To - From + 1) + From;
     return randNum;
+}
+
+void PrintMainMenu()
+{
+    cout << "Please, enter the number of the game mode you would like to play\n";
+    cout << "[1]: Custom game mode\n";
+    cout << "[2]: 3-level 15 Questions mode\n";
+    cout << "[3]: 3-level 20 Questions mode\n";
+    cout << "[4]: 3 - level 25 Questions mode\n";
+}
+
+short ReadGameMode()
+{
+    stInputData inputData;
+    inputData.from = 1;
+    inputData.to = 4;
+    PrintMainMenu();
+    
+    return ReadNumber(inputData);
+}
+
+void PrintNextLevelAtPoint(stDedicatedModeStats& game)
+{
+    static int PointNextLevel = 0;
+    PointNextLevel++;
+
+    if (PointNextLevel == game.numEasyQuestions)
+    {
+        string separator = string(50, '-');
+
+        DefaultBackGroundColor();
+        cout << separator << endl;
+        cout << "              NEXT LEVEL: "<< TEXT_YELLOW << "MEDIUM              " << TEXT_RESET << endl;
+        cout << separator << endl << endl;;
+    }
+    else if(PointNextLevel == game.numEasyQuestions + game.numMediumQuestions)
+    {
+        string separator = string(50, '-');
+
+        DefaultBackGroundColor();
+        cout << separator << endl;
+        cout << "              NEXT LEVEL: " << TEXT_RED << "HARD              " << TEXT_RESET << endl;
+        cout << separator << endl << endl;;
+
+    }
 }
 
 enQuestionsLevel ReadQuestionsLevel()
@@ -92,6 +160,23 @@ enOperationType ReadOperationType()
     inputData.validationErrorMessage = "Please, provide an operation type using the numbers representing each operation : (1-5)\n";
 
     return (enOperationType)ReadNumber(inputData);
+}
+
+short ReturnScore(bool correct, enQuestionsLevel level)
+{
+    if (!correct)
+        return false;
+    else
+    {
+        switch (level) {
+        case enQuestionsLevel::Easy:
+            return 1;
+        case enQuestionsLevel::Mid:
+            return 2;
+        case enQuestionsLevel::Hard:
+            return 3;
+        }
+    }
 }
 
 short GenerateQuestionAddSubtract(enQuestionsLevel level)
@@ -213,7 +298,7 @@ void PrintQuestion(const stQuestionStats &stats, int numberQuestion)
     }
 }
 
-void IsAnswerCorrect(stQuestionStats& questionStats, stGameStats &gameStats)
+void IsAnswerCorrect(stQuestionStats& questionStats, stCustomModeStats &gameStats)
 {
     if (questionStats.userAnswer==questionStats.correctAnswer)
     {
@@ -230,7 +315,38 @@ void IsAnswerCorrect(stQuestionStats& questionStats, stGameStats &gameStats)
     ChangeBackgroundColor(questionStats.isCorrect);
 }
 
-void PrepareQuestions(stGameStats &game)
+void IsAnswerCorrect(stQuestionStats& questionStats, stDedicatedModeStats& gameStats)
+{
+    if (questionStats.userAnswer == questionStats.correctAnswer)
+    {
+        std::cout << "Your answer is right! :-)\n\n";
+        gameStats.numCorrectAnswers++;
+        questionStats.isCorrect = true;
+    }
+    else
+    {
+        std::cout << "Your answer is wrong! :-( \nThe right answer is: " << questionStats.correctAnswer << "\n\n";
+        gameStats.numWrongAnswers++;
+        //The isCorrect field is false by default in stQuestionStats
+    }
+    ChangeBackgroundColor(questionStats.isCorrect);
+}
+
+short DetermineNumQuestions(enQuestionsLevel level)
+{
+    switch (level) {
+    case enQuestionsLevel::Easy:
+        return 15;
+    case enQuestionsLevel::Mid:
+        return 20;
+    case enQuestionsLevel::Hard:
+        return 25;
+    default:
+        return 15;
+    }
+}
+
+void PrepareQuestions(stCustomModeStats &game)
 {
     for (short Question = 0; Question < game.numQuestions; Question++)
     {
@@ -239,7 +355,65 @@ void PrepareQuestions(stGameStats &game)
     }
 }
 
-void ShowQuestionAndEvaluateAnswer(stGameStats &game)   
+void PrepareQuestions(stDedicatedModeStats& game)
+{
+    short numQuestions = DetermineNumQuestions(game.level);
+    short addMediumPoint = game.numEasyQuestions-1;
+    short addHardPoint = addMediumPoint + game.numMediumQuestions-1;
+
+    for (short Question = 0; Question < numQuestions; Question++)
+    {
+        enOperationType opType = GenerateRandomOperation();
+        enQuestionsLevel level;
+
+        if (Question > addHardPoint)
+            level = enQuestionsLevel::Hard;
+        else if (Question > addMediumPoint)
+            level = enQuestionsLevel::Mid;
+        else level = enQuestionsLevel::Easy;
+
+        stQuestionStats question = GenerateQuestion(level, opType, Question);
+        game.questions.push_back(question);
+    }
+}
+
+stDedicatedModeStats PrepareEasyMode()
+{
+    stDedicatedModeStats stats;
+    stats.numEasyQuestions = 9;
+    stats.numMediumQuestions = 4;
+    stats.numHardQuestions = 2;
+    stats.level = enQuestionsLevel::Easy;
+
+    PrepareQuestions(stats);
+    return stats;
+}
+
+stDedicatedModeStats PrepareMediumMode()
+{
+    stDedicatedModeStats stats;
+    stats.numEasyQuestions = 12;
+    stats.numMediumQuestions = 6;
+    stats.numHardQuestions = 3;
+    stats.level = enQuestionsLevel::Mid;
+
+    PrepareQuestions(stats);
+    return stats;
+}
+
+stDedicatedModeStats PrepareHardMode()
+{
+    stDedicatedModeStats stats;
+    stats.numEasyQuestions = 13;
+    stats.numMediumQuestions = 7;
+    stats.numHardQuestions = 5;
+    stats.level = enQuestionsLevel::Hard;
+
+    PrepareQuestions(stats);
+    return stats;
+}
+
+void ShowQuestionAndEvaluateAnswer(stCustomModeStats &game)   
 {
     for (int Question = 1; Question <= game.numQuestions; Question++)
     {
@@ -253,6 +427,24 @@ void ShowQuestionAndEvaluateAnswer(stGameStats &game)
         IsAnswerCorrect(game.questions[Question-1], game);
     }
     game.didPlayerPass = (game.numCorrectAnswers >= game.numWrongAnswers);
+}
+
+void ShowQuestionAndEvaluateScore(stDedicatedModeStats& game)
+{
+    short numQuestions = DetermineNumQuestions(game.level);
+    for (int Question = 1; Question <= numQuestions; Question++)
+    {
+        PrintNextLevelAtPoint(game);
+        PrintQuestion(game.questions[Question - 1], numQuestions);
+
+        stInputData inputData;
+        inputData.inputMessage = "Please, enter your answer: ";
+
+        game.questions[Question - 1].userAnswer = ReadNumber(inputData);
+
+        IsAnswerCorrect(game.questions[Question - 1], game);
+        game.playerScore += ReturnScore(game.questions[Question - 1].isCorrect, game.level);
+    }
 }
 
 string ReturnPassOrFail(bool result)
@@ -294,7 +486,7 @@ std::string ReturnOperationType(enOperationType type)
     }
 }
 
-void PrintGameResults(const stGameStats &Results)
+void PrintGameResults(const stCustomModeStats &Results)
 {    
     std::cout << "Number of Questions: " << Results.numQuestions << std::endl;
 
@@ -309,9 +501,19 @@ void PrintGameResults(const stGameStats &Results)
     ChangeBackgroundColor(Results.didPlayerPass);
 }
 
-stGameStats PlayGame(int NumQuestions)
+void PrintGameResults(const stDedicatedModeStats& Results)
 {
-    stGameStats game;
+   
+   cout << "Number of Right Answers: " << Results.numCorrectAnswers << endl;
+   cout << "Number of Wrong Answers: " << Results.numWrongAnswers << endl << endl;
+   cout << "Your final score is: " << Results.playerScore << "\n\n";
+
+   cout << "You can do better!\n";
+}
+
+stCustomModeStats PlayGame(int NumQuestions)
+{
+    stCustomModeStats game;
 
     game.level = ReadQuestionsLevel();
     game.OpType = ReadOperationType();
@@ -349,11 +551,6 @@ char DetermineAgain(string message)
     return toupper(PlayAgain);
 }
 
-void DefaultBackGroundColor()
-{
-     system("color 0f");
-}
-
 void PrintQuestionReviewCard(const stQuestionStats& question, short totalQuestions)
 {
     PrintQuestion(question, totalQuestions);
@@ -361,7 +558,8 @@ void PrintQuestionReviewCard(const stQuestionStats& question, short totalQuestio
     cout << "The correct answer: " << question.correctAnswer << endl;
 }
 
-void ReviewAnswers(stGameStats& game)
+//We might overload a version of this function
+void ReviewAnswers(stCustomModeStats& game)
 {
     stInputData inputData;
     inputData.from = 1;
@@ -377,6 +575,25 @@ void ReviewAnswers(stGameStats& game)
     }
 }
 
+void ReviewAnswers(stDedicatedModeStats& game)
+{
+    short numQuestions = DetermineNumQuestions(game.level);
+
+    stInputData inputData;
+    inputData.from = 1;
+    inputData.to = numQuestions;
+    inputData.inputMessage = "Please, enter the number of the question you'd like to review ("
+        + to_string(inputData.from) + '-' + to_string(inputData.to) + ')';
+
+    while (DetermineAgain("Do you want to review your answer to a question (Y/N)?\n") == 'Y')
+    {
+        DefaultBackGroundColor();
+        short QuestionNum = ReadNumber(inputData);
+        PrintQuestionReviewCard(game.questions[QuestionNum - 1], numQuestions);
+    }
+
+}
+
 int ReadNumberOfQuestions()
 {
     stInputData inputData;
@@ -388,18 +605,47 @@ int ReadNumberOfQuestions()
     return ReadNumber(inputData);
 }
 
+void StartCustomMode()
+{
+
+     stCustomModeStats customStats;
+     customStats.numQuestions = ReadNumberOfQuestions();
+
+     customStats = PlayGame(customStats.numQuestions);
+     PrintGameResults(customStats);
+     ReviewAnswers(customStats);
+
+     ResetScreen();
+}
+
+void StartDedicatedMode(short modeNumber)
+{
+    stDedicatedModeStats modeStats;
+
+    if (modeNumber == 2)
+        modeStats = PrepareEasyMode();
+    else if (modeNumber == 3)
+        modeStats = PrepareMediumMode();
+
+    else modeStats = PrepareHardMode();
+
+    ShowQuestionAndEvaluateScore(modeStats);
+    PrintGameResults(modeStats);
+    ReviewAnswers(modeStats);
+
+    ResetScreen();
+}
+
 void StartGame()
 {
+    short GameModeChoice;
     do
     {
-        ResetScreen();
-
-        stGameStats GameResults;
-        GameResults.numQuestions = ReadNumberOfQuestions();
-
-        GameResults = PlayGame(GameResults.numQuestions);
-        PrintGameResults(GameResults);
-        ReviewAnswers(GameResults);
+        GameModeChoice = ReadGameMode();
+        if (GameModeChoice == 1)
+            StartCustomMode();
+        else
+            StartDedicatedMode(GameModeChoice);
 
     } while (DetermineAgain("Do You want to play again (Y/N)?\n") == 'Y');
 }
