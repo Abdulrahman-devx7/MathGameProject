@@ -48,6 +48,7 @@ struct stDedicatedModeStats
     short numEasyQuestions = 9;
     short numMediumQuestions = 4;
     short numHardQuestions = 2;
+    short numQuestions = numEasyQuestions + numMediumQuestions + numHardQuestions;
     int numCorrectAnswers = 0;
     int numWrongAnswers = 0;
     enQuestionsLevel level = enQuestionsLevel::Easy;
@@ -101,7 +102,7 @@ void PrintMainMenu()
     cout << "[1]: Custom game mode\n";
     cout << "[2]: 3-level 15 Questions mode\n";
     cout << "[3]: 3-level 20 Questions mode\n";
-    cout << "[4]: 3 - level 25 Questions mode\n";
+    cout << "[4]: 3-level 25 Questions mode\n";
 }
 
 short ReadGameMode()
@@ -114,12 +115,9 @@ short ReadGameMode()
     return ReadNumber(inputData);
 }
 
-void PrintNextLevelAtPoint(stDedicatedModeStats& game)
+void PrintNextLevelAtPoint(stDedicatedModeStats& game, short PointNextLevel)
 {
-    static int PointNextLevel = 0;
-    PointNextLevel++;
-
-    if (PointNextLevel == game.numEasyQuestions)
+    if (PointNextLevel == game.numEasyQuestions+1)
     {
         string separator = string(50, '-');
 
@@ -128,7 +126,7 @@ void PrintNextLevelAtPoint(stDedicatedModeStats& game)
         cout << "              NEXT LEVEL: "<< TEXT_YELLOW << "MEDIUM              " << TEXT_RESET << endl;
         cout << separator << endl << endl;;
     }
-    else if(PointNextLevel == game.numEasyQuestions + game.numMediumQuestions)
+    else if(PointNextLevel == game.numEasyQuestions + game.numMediumQuestions+1)
     {
         string separator = string(50, '-');
 
@@ -357,9 +355,9 @@ void PrepareQuestions(stCustomModeStats &game)
 
 void PrepareQuestions(stDedicatedModeStats& game)
 {
-    short numQuestions = DetermineNumQuestions(game.level);
+    short numQuestions = game.numQuestions;
     short addMediumPoint = game.numEasyQuestions-1;
-    short addHardPoint = addMediumPoint + game.numMediumQuestions-1;
+    short addHardPoint = addMediumPoint + game.numMediumQuestions;
 
     for (short Question = 0; Question < numQuestions; Question++)
     {
@@ -431,10 +429,10 @@ void ShowQuestionAndEvaluateAnswer(stCustomModeStats &game)
 
 void ShowQuestionAndEvaluateScore(stDedicatedModeStats& game)
 {
-    short numQuestions = DetermineNumQuestions(game.level);
+    short numQuestions = game.numQuestions;
     for (int Question = 1; Question <= numQuestions; Question++)
     {
-        PrintNextLevelAtPoint(game);
+        PrintNextLevelAtPoint(game, Question);
         PrintQuestion(game.questions[Question - 1], numQuestions);
 
         stInputData inputData;
@@ -535,7 +533,7 @@ void ResetScreen()
 char DetermineAgain(string message)
 {
     char PlayAgain;
-    cout << endl << message;
+    cout << message;
     cin >> PlayAgain;
 
     while (cin.fail() || (toupper(PlayAgain) != 'N' && toupper(PlayAgain) != 'Y')
@@ -577,7 +575,7 @@ void ReviewAnswers(stCustomModeStats& game)
 
 void ReviewAnswers(stDedicatedModeStats& game)
 {
-    short numQuestions = DetermineNumQuestions(game.level);
+    short numQuestions = game.numQuestions;
 
     stInputData inputData;
     inputData.from = 1;
@@ -607,7 +605,6 @@ int ReadNumberOfQuestions()
 
 void StartCustomMode()
 {
-
      stCustomModeStats customStats;
      customStats.numQuestions = ReadNumberOfQuestions();
 
