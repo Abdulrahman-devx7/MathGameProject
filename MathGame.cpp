@@ -454,8 +454,8 @@ void PlayDedicatedMode(stDedicatedModeStats& game)
 
         IsAnswerCorrect(game.questions[i - 1], game);
 
-        game.playerScore += ReturnScore(game.questions[i - 1].isCorrect, game.level);
-        ShowQuestionScore(ReturnScore(game.questions[i - 1].isCorrect, game.level));
+        game.playerScore += ReturnScore(game.questions[i - 1].isCorrect, game.questions[i-1].level);
+        ShowQuestionScore(ReturnScore(game.questions[i - 1].isCorrect, game.questions[i - 1].level));
     }
 }
 
