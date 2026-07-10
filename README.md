@@ -15,6 +15,7 @@ A modular and console-based math quiz game that can generate simple math questio
 - An active game grading system that concludes the user's performance at the end of the game.
 - A defensive validation system that prevents crashes caused by unexpected user inputs.
 - A limit of 200 questions per session.
+- 3 score-based game modes with questions progressing in difficulty giving you more points.
 - Ability to review answers after ending the game session.
 
 
@@ -25,4 +26,4 @@ A modular and console-based math quiz game that can generate simple math questio
 - Real-time performance evaluation through
 - Passing encapsulated variables via structs by reference to improve memory efficiency with $O(1)$ space efficiency.
 - Implementation of input validation using the `cin.fail()` & `cin.peek()` in the `cin` object to prevent infinite loops or unexpected behavior
-
+- Usage of function overloading to make reusable functions for differing parameters.
